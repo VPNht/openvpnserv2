@@ -12,6 +12,7 @@ namespace OpenVpn
     public delegate void HandleDisconnection();
     public delegate void HandleMessage(string source, string message);
     public delegate void HandleCommand(string command, string message);
+    public delegate void HandleMultiLineCommand(string command, string[] messages);
 
     class ManagementClient
     {
@@ -20,18 +21,24 @@ namespace OpenVpn
         public event HandleMessage OnMessageReceived;
         public event HandleCommand OnCommandSucceeded;
         public event HandleCommand OnCommandFailed;
+        public event HandleMultiLineCommand OnCommandMessageReceived;
 
         private static int WRITE_BUFFER_SIZE = 10240;
         private static int READ_BUFFER_SIZE = 10240;
 
         private TcpClient _client = null;
         private NetworkStream _stream = null;
-        private bool _isConnected = false;
         private byte[] _readBuffer = new byte[READ_BUFFER_SIZE];
         private byte[] _writeBuffer = new byte[WRITE_BUFFER_SIZE];
+        private bool _isConnected = false;
 
         public ManagementClient()
-        { 
+        {
+        }
+
+        public bool IsConnected()
+        {
+            return _isConnected;
         }
 
         public bool Connect(int port)
