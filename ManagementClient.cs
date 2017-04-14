@@ -126,6 +126,9 @@ namespace OpenVpn
                     // [END]
                     else
                     {
+                        string command = "";
+                        string[] messages = response.Split(new string[] { "\r\n", "END" }, StringSplitOptions.RemoveEmptyEntries);
+                        OnCommandMessageReceived(command, messages);
                     }
                 }
             }

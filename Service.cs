@@ -241,14 +241,20 @@ namespace OpenVpn
             return 0;
         }
 
+        private static void _client_OnCommandMessageReceived(string command, string[] messages)
+        {
+            foreach (string message in messages)
+            {
+                Console.WriteLine(message);
+            }
+        }
+
         private static void Client_OnDisconnected()
         {
-            throw new NotImplementedException();
         }
 
         private static void Client_OnConnected()
         {
-            throw new NotImplementedException();
         }
 
         private static void Client_OnCommandSucceeded(string command, string message)
