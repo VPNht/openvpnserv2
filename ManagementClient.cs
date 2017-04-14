@@ -68,8 +68,10 @@ namespace OpenVpn
             OnDisconnected?.Invoke();
         }
 
-        public void SendMessage(string message)
+        public void SendCommand(string message)
         {
+            byte[] data = System.Text.Encoding.UTF8.GetBytes(message + "\r\n");
+            _stream.Write(data, 0, data.Length);
         }
 
         private void ListenForData()
