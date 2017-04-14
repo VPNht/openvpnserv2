@@ -69,6 +69,10 @@ namespace OpenVpn
         {
             try
             {
+                #if DEBUG
+                    System.Diagnostics.Debugger.Launch();
+                #endif
+
                 List<RegistryKey> rkOvpns = new List<RegistryKey>();
 
                 // Search 64-bit registry, then 32-bit registry for OpenVpn
