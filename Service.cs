@@ -7,10 +7,11 @@ using System.IO;
 using System.Diagnostics;
 using System.ServiceProcess;
 using System.Threading;
+using System.Net;
+using System.Net.Sockets;
 
 namespace OpenVpn
 {
-
     class OpenVpnService : System.ServiceProcess.ServiceBase
     {
         public static string DefaultServiceName = "OpenVpnService";
@@ -183,6 +184,16 @@ namespace OpenVpn
 
         public static int Main(string[] args)
         {
+            ManagementClient client = new ManagementClient();
+            client.OnConnected += Client_OnConnected;
+            client.OnDisconnected += Client_OnDisconnected;
+            client.OnMessageReceived += Client_OnMessageReceived;
+            client.OnCommandSucceeded += Client_OnCommandSucceeded;
+            client.OnCommandFailed += Client_OnCommandFailed;
+            client.Connect(62269);
+
+            return 0;
+
             if (args.Length == 0)
             {
                 Run(new OpenVpnService());
@@ -219,12 +230,37 @@ namespace OpenVpn
                 Console.Error.WriteLine("Unknown command: " + args[0]);
                 return 1;
             }
+
             return 0;
         }
 
+        private static void Client_OnDisconnected()
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void Client_OnConnected()
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void Client_OnCommandSucceeded(string command, string message)
+        {
+            Console.WriteLine("[OK] " + command + ":" + message);
+        }
+
+        private static void Client_OnCommandFailed(string command, string message)
+        {
+            Console.WriteLine("[ERROR] " + command + ":" + message);
+        }
+       
+        private static void Client_OnMessageReceived(string source, string message)
+        {
+            Console.WriteLine( "[MSG] " + source + ":" + message);
+        }
     }
 
-    class OpenVpnServiceConfiguration {
+        class OpenVpnServiceConfiguration {
         public string exePath {get;set;}
         public string configExt {get;set;}
         public string configDir {get;set;}
