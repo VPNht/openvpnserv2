@@ -37,9 +37,14 @@ namespace OpenVpn
         {
         }
 
-        public bool IsConnected()
+        public bool IsConnected
         {
-            return _isConnected;
+            get { return _isConnected; }
+        }
+
+        public string LastCommand
+        {
+            get { return _lastSentCommand; }
         }
 
         public bool Connect(int port)

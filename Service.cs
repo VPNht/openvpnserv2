@@ -194,7 +194,7 @@ namespace OpenVpn
             _client.OnCommandFailed += Client_OnCommandFailed;
             _client.Connect(62269);
 
-            while (_client.IsConnected())
+            while (_client.IsConnected)
             {
                 Thread.Sleep(1000);
             }
