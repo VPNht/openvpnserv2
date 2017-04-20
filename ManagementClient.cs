@@ -16,6 +16,12 @@ namespace OpenVpn
 
     class ManagementClient
     {
+        public struct Command
+        {
+            public string Name;
+            public string Value;
+        };
+
         public event HandleConnection OnConnected;
         public event HandleDisconnection OnDisconnected;
         public event HandleMessage OnMessageReceived;
@@ -31,7 +37,7 @@ namespace OpenVpn
         private byte[] _readBuffer = new byte[READ_BUFFER_SIZE];
         private byte[] _writeBuffer = new byte[WRITE_BUFFER_SIZE];
         private bool _isConnected = false;
-        private string _lastSentCommand = "";
+        private Command _command = new Command();
 
         public ManagementClient()
         {
@@ -42,9 +48,9 @@ namespace OpenVpn
             get { return _isConnected; }
         }
 
-        public string LastCommand
+        public Command CurrentCommand
         {
-            get { return _lastSentCommand; }
+            get { return _command; }
         }
 
         public bool Connect(int port)
@@ -74,11 +80,12 @@ namespace OpenVpn
             OnDisconnected?.Invoke();
         }
 
-        public void SendCommand(string command)
+        public void SendCommand(string command, string value)
         {
-            byte[] data = System.Text.Encoding.UTF8.GetBytes(command + "\r\n");
+            byte[] data = System.Text.Encoding.UTF8.GetBytes(command + (value != "" ? " " : "") + value + "\r\n");
             _stream.Write(data, 0, data.Length);
-            _lastSentCommand = command;
+            _command.Name = command.ToUpper();
+            _command.Value = value;
         }
 
         private void ListenForData()
@@ -114,7 +121,7 @@ namespace OpenVpn
                     else if (response.StartsWith("SUCCESS: ") && OnCommandSucceeded != null)
                     {
                         string text = response.Substring(9);
-                        OnCommandSucceeded(_lastSentCommand, text);
+                        OnCommandSucceeded(_command.Name, text);
                     }
 
                     // Command failure
@@ -122,7 +129,7 @@ namespace OpenVpn
                     else if (response.StartsWith("ERROR: ") && OnCommandFailed != null)
                     {
                         string text = response.Substring(7);
-                        OnCommandFailed(_lastSentCommand, text);
+                        OnCommandFailed(_command.Name, text);
                     }
 
                     // Multi-line command response
@@ -132,7 +139,7 @@ namespace OpenVpn
                     else
                     {
                         string[] messages = response.Split(new string[] { "\r\n", "END" }, StringSplitOptions.RemoveEmptyEntries);
-                        OnCommandMessageReceived(_lastSentCommand, messages);
+                        OnCommandMessageReceived(_command.Name, messages);
                     }
                 }
             }
