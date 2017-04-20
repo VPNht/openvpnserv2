@@ -31,6 +31,7 @@ namespace OpenVpn
         private byte[] _readBuffer = new byte[READ_BUFFER_SIZE];
         private byte[] _writeBuffer = new byte[WRITE_BUFFER_SIZE];
         private bool _isConnected = false;
+        private string _lastSentCommand = "";
 
         public ManagementClient()
         {
@@ -68,10 +69,11 @@ namespace OpenVpn
             OnDisconnected?.Invoke();
         }
 
-        public void SendCommand(string message)
+        public void SendCommand(string command)
         {
-            byte[] data = System.Text.Encoding.UTF8.GetBytes(message + "\r\n");
+            byte[] data = System.Text.Encoding.UTF8.GetBytes(command + "\r\n");
             _stream.Write(data, 0, data.Length);
+            _lastSentCommand = command;
         }
 
         private void ListenForData()
@@ -106,18 +108,16 @@ namespace OpenVpn
                     // SUCCESS: [text]
                     else if (response.StartsWith("SUCCESS: ") && OnCommandSucceeded != null)
                     {
-                        string command = "";
-                        string text = response.Substring(10);
-                        OnCommandSucceeded(command, text);
+                        string text = response.Substring(9);
+                        OnCommandSucceeded(_lastSentCommand, text);
                     }
 
                     // Command failure
                     // ERROR: [text]
                     else if (response.StartsWith("ERROR: ") && OnCommandFailed != null)
                     {
-                        string command = "";
                         string text = response.Substring(7);
-                        OnCommandFailed(command, text);
+                        OnCommandFailed(_lastSentCommand, text);
                     }
 
                     // Multi-line command response
@@ -126,9 +126,8 @@ namespace OpenVpn
                     // [END]
                     else
                     {
-                        string command = "";
                         string[] messages = response.Split(new string[] { "\r\n", "END" }, StringSplitOptions.RemoveEmptyEntries);
-                        OnCommandMessageReceived(command, messages);
+                        OnCommandMessageReceived(_lastSentCommand, messages);
                     }
                 }
             }
