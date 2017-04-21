@@ -16,7 +16,7 @@ namespace OpenVpn
 
     class ManagementClient
     {
-        public struct Command
+        public struct ManagementCommand
         {
             public string Name;
             public string Value;
@@ -37,7 +37,7 @@ namespace OpenVpn
         private byte[] _readBuffer = new byte[READ_BUFFER_SIZE];
         private byte[] _writeBuffer = new byte[WRITE_BUFFER_SIZE];
         private bool _isConnected = false;
-        private Command _command = new Command();
+        private Queue<ManagementCommand> _commands = new Queue<ManagementCommand>();
 
         public ManagementClient()
         {
@@ -48,9 +48,9 @@ namespace OpenVpn
             get { return _isConnected; }
         }
 
-        public Command CurrentCommand
+        public ManagementCommand Command
         {
-            get { return _command; }
+            get { return _commands.First(); }
         }
 
         public bool Connect(int port)
@@ -64,8 +64,8 @@ namespace OpenVpn
 
                 OnConnected?.Invoke();
 
-                Thread t = new Thread(new ThreadStart(ListenForData));
-                t.Start();
+                Thread readThread = new Thread(new ThreadStart(ReadData));
+                readThread.Start();
 
                 return true;
             }
@@ -80,15 +80,29 @@ namespace OpenVpn
             OnDisconnected?.Invoke();
         }
 
-        public void SendCommand(string command, string value)
+        public void SendCommand( string name, string value)
         {
-            byte[] data = System.Text.Encoding.UTF8.GetBytes(command + (value != "" ? " " : "") + value + "\r\n");
-            _stream.Write(data, 0, data.Length);
-            _command.Name = command.ToUpper();
-            _command.Value = value;
+            ManagementCommand command = new ManagementCommand();
+            command.Name = name;
+            command.Value = value;
+            _commands.Enqueue(command);
+
+            if (_commands.Count == 1)
+            {
+                SendNextCommand();
+            }
         }
 
-        private void ListenForData()
+        private void SendNextCommand()
+        {
+            if (_commands.Count != 0)
+            {
+                byte[] data = System.Text.Encoding.UTF8.GetBytes(Command.Name + " " + Command.Value + "\r\n");
+                _stream.Write(data, 0, data.Length);
+            }
+        }
+
+        private void ReadData()
         {
             try
             {
@@ -121,7 +135,10 @@ namespace OpenVpn
                     else if (response.StartsWith("SUCCESS: ") && OnCommandSucceeded != null)
                     {
                         string text = response.Substring(9);
-                        OnCommandSucceeded(_command.Name, text);
+                        OnCommandSucceeded(Command.Name, text);
+
+                        _commands.Dequeue();
+                        SendNextCommand();
                     }
 
                     // Command failure
@@ -129,7 +146,10 @@ namespace OpenVpn
                     else if (response.StartsWith("ERROR: ") && OnCommandFailed != null)
                     {
                         string text = response.Substring(7);
-                        OnCommandFailed(_command.Name, text);
+                        OnCommandFailed(Command.Name, text);
+
+                        _commands.Dequeue();
+                        SendNextCommand();
                     }
 
                     // Multi-line command response
@@ -139,7 +159,7 @@ namespace OpenVpn
                     else
                     {
                         string[] messages = response.Split(new string[] { "\r\n", "END" }, StringSplitOptions.RemoveEmptyEntries);
-                        OnCommandMessageReceived(_command.Name, messages);
+                        OnCommandMessageReceived(Command.Name, messages);
                     }
                 }
             }
