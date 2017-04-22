@@ -8,22 +8,29 @@ using System.Threading;
 
 namespace OpenVpn
 {
-    public delegate void HandleConnection();
-    public delegate void HandleDisconnection();
+    public struct ManagementClientCommand
+    {
+        public string Name;
+        public string Value;
+    };
+
+    public enum ManagementClientState
+    {
+        DISCONNECTED = 0,
+        CONNECTING,
+        AUTHENTICATING,
+        RECONNECTING,
+        CONNECTED
+    };
+
+    public delegate void HandleState(ManagementClientState state);
     public delegate void HandleMessage(string source, string message);
     public delegate void HandleCommand(string command, string message);
     public delegate void HandleMultiLineCommand(string command, string[] messages);
 
     class ManagementClient
     {
-        public struct ManagementCommand
-        {
-            public string Name;
-            public string Value;
-        };
-
-        public event HandleConnection OnConnected;
-        public event HandleDisconnection OnDisconnected;
+        public event HandleState OnStateChanged;
         public event HandleMessage OnMessageReceived;
         public event HandleCommand OnCommandSucceeded;
         public event HandleCommand OnCommandFailed;
@@ -36,19 +43,19 @@ namespace OpenVpn
         private NetworkStream _stream = null;
         private byte[] _readBuffer = new byte[READ_BUFFER_SIZE];
         private byte[] _writeBuffer = new byte[WRITE_BUFFER_SIZE];
-        private bool _isConnected = false;
-        private Queue<ManagementCommand> _commands = new Queue<ManagementCommand>();
+        private ManagementClientState _state = ManagementClientState.DISCONNECTED;
+        private Queue<ManagementClientCommand> _commands = new Queue<ManagementClientCommand>();
 
         public ManagementClient()
         {
         }
 
-        public bool IsConnected
+        public ManagementClientState State
         {
-            get { return _isConnected; }
+            get { return _state; }
         }
 
-        public ManagementCommand Command
+        public ManagementClientCommand Command
         {
             get { return _commands.First(); }
         }
@@ -60,9 +67,9 @@ namespace OpenVpn
                 _client = new TcpClient();
                 _client.Connect("127.0.0.1", port);
                 _stream = _client.GetStream();
-                _isConnected = true;
+                _state = ManagementClientState.CONNECTED;
 
-                OnConnected?.Invoke();
+                OnStateChanged?.Invoke(ManagementClientState.CONNECTED);
 
                 Thread readThread = new Thread(new ThreadStart(ReadData));
                 readThread.Start();
@@ -77,12 +84,13 @@ namespace OpenVpn
 
         public void Disconnect()
         {
-            OnDisconnected?.Invoke();
+            OnStateChanged?.Invoke(ManagementClientState.DISCONNECTED);
+
         }
 
         public void SendCommand( string name, string value)
         {
-            ManagementCommand command = new ManagementCommand();
+            ManagementClientCommand command = new ManagementClientCommand();
             command.Name = name;
             command.Value = value;
             _commands.Enqueue(command);
@@ -108,7 +116,7 @@ namespace OpenVpn
             {
                 int bytesRead = 0;
 
-                while (_isConnected)
+                while (State == ManagementClientState.CONNECTED)
                 {
                     bytesRead = _stream.Read(_readBuffer, 0, READ_BUFFER_SIZE);
 

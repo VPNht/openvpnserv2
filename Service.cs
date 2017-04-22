@@ -187,14 +187,14 @@ namespace OpenVpn
         public static int Main(string[] args)
         {
             _client = new ManagementClient();
-            _client.OnConnected += Client_OnConnected;
-            _client.OnDisconnected += Client_OnDisconnected;
+            _client.OnStateChanged += Client_OnStateChanged;
             _client.OnMessageReceived += Client_OnMessageReceived;
+            _client.OnCommandMessageReceived += Client_OnCommandMessageReceived;
             _client.OnCommandSucceeded += Client_OnCommandSucceeded;
             _client.OnCommandFailed += Client_OnCommandFailed;
-            _client.Connect(62269);
+            _client.Connect(53813);
 
-            while (_client.IsConnected)
+            while (_client.State == ManagementClientState.CONNECTED)
             {
                 Thread.Sleep(1000);
             }
@@ -241,20 +241,21 @@ namespace OpenVpn
             return 0;
         }
 
-        private static void _client_OnCommandMessageReceived(string command, string[] messages)
+        private static void Client_OnStateChanged(ManagementClientState state)
+        {
+        }
+
+        private static void Client_OnMessageReceived(string source, string message)
+        {
+            Console.WriteLine("[MSG] " + source + ":" + message);
+        }
+
+        private static void Client_OnCommandMessageReceived(string command, string[] messages)
         {
             foreach (string message in messages)
             {
                 Console.WriteLine(message);
             }
-        }
-
-        private static void Client_OnDisconnected()
-        {
-        }
-
-        private static void Client_OnConnected()
-        {
         }
 
         private static void Client_OnCommandSucceeded(string command, string message)
@@ -265,11 +266,6 @@ namespace OpenVpn
         private static void Client_OnCommandFailed(string command, string message)
         {
             Console.WriteLine("[ERROR] " + command + ":" + message);
-        }
-       
-        private static void Client_OnMessageReceived(string source, string message)
-        {
-            Console.WriteLine( "[MSG] " + source + ":" + message);
         }
     }
 
