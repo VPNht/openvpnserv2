@@ -34,9 +34,17 @@ namespace OpenVpn
 
             this.Subprocesses = new List<OpenVpnChild>();
 
+            // Setup REST server
             this.Server = new RestServer();
             this.Server.AfterStarting += StartOpenVPN;
             this.Server.AfterStopping += StopOpenVPN;
+
+            // Setup OpenVPN client
+            ManagementClient.Instance.OnStateChanged += Client_OnStateChanged;
+            ManagementClient.Instance.OnCommandSucceeded += Client_OnCommandSucceeded;
+            ManagementClient.Instance.OnCommandFailed += Client_OnCommandFailed;
+            ManagementClient.Instance.OnMessageReceived += Client_OnMessageReceived;
+            ManagementClient.Instance.OnCommandMessageReceived += Client_OnCommandMessageReceived;
         }
 
         protected override void OnStart(string[] args)
@@ -241,35 +249,37 @@ namespace OpenVpn
             return 0;
         }
 
-        private static void Client_OnStateChanged(ManagementClientState state)
+        private void Client_OnStateChanged(ManagementClientState state)
         {
+            EventLog.WriteEntry("ManagementClient state: " + state.ToString());
         }
 
-        private static void Client_OnMessageReceived(string source, string message)
+        private void Client_OnMessageReceived(string source, string message)
         {
-            Console.WriteLine("[MSG] " + source + ":" + message);
+            EventLog.WriteEntry("[MSG] " + source + ":" + message);
         }
 
-        private static void Client_OnCommandMessageReceived(string command, string[] messages)
+        private void Client_OnCommandMessageReceived(string command, string[] messages)
         {
             foreach (string message in messages)
             {
-                Console.WriteLine(message);
+                EventLog.WriteEntry(message);
             }
         }
 
-        private static void Client_OnCommandSucceeded(string command, string message)
+        private void Client_OnCommandSucceeded(string command, string message)
         {
-            Console.WriteLine("[OK] " + command + ":" + message);
+            EventLog.WriteEntry("[OK] " + command + ":" + message);
         }
 
-        private static void Client_OnCommandFailed(string command, string message)
+        private void Client_OnCommandFailed(string command, string message)
         {
-            Console.WriteLine("[ERROR] " + command + ":" + message);
+            EventLog.WriteEntry("[ERROR] " + command + ":" + message);
         }
     }
 
-        class OpenVpnServiceConfiguration {
+    class OpenVpnServiceConfiguration
+    {
         public string exePath {get;set;}
         public string configExt {get;set;}
         public string configDir {get;set;}
@@ -280,7 +290,8 @@ namespace OpenVpn
         public EventLog eventLog {get;set;}
     }
 
-    class OpenVpnChild {
+    class OpenVpnChild
+    {
         StreamWriter logFile;
         Process process;
         ProcessStartInfo startInfo;
