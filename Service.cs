@@ -9,6 +9,7 @@ using System.ServiceProcess;
 using System.Threading;
 using System.Net;
 using System.Net.Sockets;
+using Grapevine.Server;
 
 namespace OpenVpn
 {
@@ -18,6 +19,7 @@ namespace OpenVpn
 
         public const string Package = "openvpn";
         private List<OpenVpnChild> Subprocesses;
+        private RestServer Server;
 
         public OpenVpnService()
         {
@@ -31,49 +33,26 @@ namespace OpenVpn
             this.AutoLog = true;
 
             this.Subprocesses = new List<OpenVpnChild>();
-        }
 
-        protected override void OnStop()
-        {
-            RequestAdditionalTime(3000);
-            foreach (var child in Subprocesses)
-            {
-                child.SignalProcess();
-            }
-            // Kill all processes -- wait for 2500 msec at most
-            DateTime tEnd = DateTime.Now.AddMilliseconds(2500.0);
-            foreach (var child in Subprocesses)
-            {
-               int timeout = (int) (tEnd - DateTime.Now).TotalMilliseconds;
-               child.StopProcess(timeout > 0 ? timeout : 0);
-            }
-        }
-
-        private RegistryKey GetRegistrySubkey(RegistryView rView)
-        {
-            try
-            {
-                return RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, rView)
-                    .OpenSubKey("Software\\OpenVPN");
-            }
-            catch (ArgumentException)
-            {
-                return null;
-            }
-            catch (NullReferenceException)
-            {
-                return null;
-            }
+            this.Server = new RestServer();
+            this.Server.AfterStarting += StartOpenVPN;
+            this.Server.AfterStopping += StopOpenVPN;
         }
 
         protected override void OnStart(string[] args)
         {
+            Server.Start();
+        }
+
+        protected override void OnStop()
+        {
+            Server.Stop();
+        }
+
+        private void StartOpenVPN(RestServer server)
+        {
             try
             {
-                #if DEBUG
-                    System.Diagnostics.Debugger.Launch();
-                #endif
-
                 List<RegistryKey> rkOvpns = new List<RegistryKey>();
 
                 // Search 64-bit registry, then 32-bit registry for OpenVpn
@@ -89,7 +68,8 @@ namespace OpenVpn
 
                 foreach (var rkOvpn in rkOvpns)
                 {
-                    try {
+                    try
+                    {
                         bool append = false;
                         {
                             var logAppend = (string)rkOvpn.GetValue("log_append");
@@ -111,7 +91,8 @@ namespace OpenVpn
                             eventLog = EventLog,
                         };
 
-                        if (configDirsConsidered.Contains(config.configDir)) {
+                        if (configDirsConsidered.Contains(config.configDir))
+                        {
                             continue;
                         }
                         configDirsConsidered.Add(config.configDir);
@@ -130,7 +111,8 @@ namespace OpenVpn
                                                                                 "*" + config.configExt,
                                                                                 System.IO.SearchOption.AllDirectories))
                         {
-                            try {
+                            try
+                            {
                                 var child = new OpenVpnChild(config, configFilename);
                                 Subprocesses.Add(child);
                                 child.Start();
@@ -147,12 +129,44 @@ namespace OpenVpn
                         EventLog.WriteEntry("Registry values are incomplete for " + rkOvpn.View.ToString() + e.StackTrace);
                     }
                 }
-
             }
             catch (Exception e)
             {
                 EventLog.WriteEntry("Exception occured during OpenVPN service start: " + e.Message + e.StackTrace);
                 throw e;
+            }
+        }
+
+        private void StopOpenVPN(RestServer server)
+        {
+            RequestAdditionalTime(3000);
+            foreach (var child in Subprocesses)
+            {
+                child.SignalProcess();
+            }
+            // Kill all processes -- wait for 2500 msec at most
+            DateTime tEnd = DateTime.Now.AddMilliseconds(2500.0);
+            foreach (var child in Subprocesses)
+            {
+                int timeout = (int)(tEnd - DateTime.Now).TotalMilliseconds;
+                child.StopProcess(timeout > 0 ? timeout : 0);
+            }
+        }
+
+        private RegistryKey GetRegistrySubkey(RegistryView rView)
+        {
+            try
+            {
+                return RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, rView)
+                    .OpenSubKey("Software\\OpenVPN");
+            }
+            catch (ArgumentException)
+            {
+                return null;
+            }
+            catch (NullReferenceException)
+            {
+                return null;
             }
         }
 
@@ -184,20 +198,9 @@ namespace OpenVpn
 
         public static int Main(string[] args)
         {
-            ManagementClient.Instance.OnStateChanged += Client_OnStateChanged;
-            ManagementClient.Instance.OnMessageReceived += Client_OnMessageReceived;
-            ManagementClient.Instance.OnCommandMessageReceived += Client_OnCommandMessageReceived;
-            ManagementClient.Instance.OnCommandSucceeded += Client_OnCommandSucceeded;
-            ManagementClient.Instance.OnCommandFailed += Client_OnCommandFailed;
-            ManagementClient.Instance.Connect(53813);
-
-            while (ManagementClient.Instance.State == ManagementClientState.CONNECTED)
-            {
-                Thread.Sleep(1000);
-            }
-
-            return 0;
-
+#if DEBUG
+            System.Diagnostics.Debugger.Launch();
+#endif
             if (args.Length == 0)
             {
                 Run(new OpenVpnService());
