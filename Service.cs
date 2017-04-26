@@ -182,19 +182,16 @@ namespace OpenVpn
             }
         }
 
-        public static ManagementClient _client;
-
         public static int Main(string[] args)
         {
-            _client = new ManagementClient();
-            _client.OnStateChanged += Client_OnStateChanged;
-            _client.OnMessageReceived += Client_OnMessageReceived;
-            _client.OnCommandMessageReceived += Client_OnCommandMessageReceived;
-            _client.OnCommandSucceeded += Client_OnCommandSucceeded;
-            _client.OnCommandFailed += Client_OnCommandFailed;
-            _client.Connect(53813);
+            ManagementClient.Instance.OnStateChanged += Client_OnStateChanged;
+            ManagementClient.Instance.OnMessageReceived += Client_OnMessageReceived;
+            ManagementClient.Instance.OnCommandMessageReceived += Client_OnCommandMessageReceived;
+            ManagementClient.Instance.OnCommandSucceeded += Client_OnCommandSucceeded;
+            ManagementClient.Instance.OnCommandFailed += Client_OnCommandFailed;
+            ManagementClient.Instance.Connect(53813);
 
-            while (_client.State == ManagementClientState.CONNECTED)
+            while (ManagementClient.Instance.State == ManagementClientState.CONNECTED)
             {
                 Thread.Sleep(1000);
             }

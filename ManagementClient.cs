@@ -36,6 +36,8 @@ namespace OpenVpn
         public event HandleCommand OnCommandFailed;
         public event HandleMultiLineCommand OnCommandMessageReceived;
 
+        public static ManagementClient Instance = new ManagementClient();
+
         private static int WRITE_BUFFER_SIZE = 10240;
         private static int READ_BUFFER_SIZE = 10240;
 
