@@ -37,14 +37,9 @@ namespace OpenVpn
         public event HandleMultiLineCommand OnCommandMessageReceived;
 
         public static ManagementClient Instance = new ManagementClient();
-
-        private static int WRITE_BUFFER_SIZE = 10240;
-        private static int READ_BUFFER_SIZE = 10240;
-
+        
         private TcpClient _client = null;
         private NetworkStream _stream = null;
-        private byte[] _readBuffer = new byte[READ_BUFFER_SIZE];
-        private byte[] _writeBuffer = new byte[WRITE_BUFFER_SIZE];
         private ManagementClientState _state = ManagementClientState.DISCONNECTED;
         private Queue<ManagementClientCommand> _commands = new Queue<ManagementClientCommand>();
 
@@ -125,15 +120,14 @@ namespace OpenVpn
         {
             try
             {
-                int bytesRead = 0;
+                byte[] buffer = new byte[10240];
 
                 while (State == ManagementClientState.CONNECTED)
                 {
-                    bytesRead = _stream.Read(_readBuffer, 0, READ_BUFFER_SIZE);
-
+                    int bytesRead = _stream.Read(buffer, 0, 10240);
                     if (bytesRead == 0) continue;
 
-                    string response = System.Text.Encoding.UTF8.GetString(_readBuffer, 0, bytesRead);
+                    string response = System.Text.Encoding.UTF8.GetString(buffer, 0, bytesRead);
 
                     // Real-time messages:
                     // >[SOURCE]:[MESSAGE]
