@@ -66,15 +66,18 @@ namespace OpenVpn
         {
             try
             {
-                _client = new TcpClient();
-                _client.Connect("127.0.0.1", port);
-                _stream = _client.GetStream();
-                _state = ManagementClientState.CONNECTED;
+                if ( _client == null || !_client.Connected )
+                {
+                    _client = new TcpClient();
+                    _client.Connect("127.0.0.1", port);
+                    _stream = _client.GetStream();
+                    _state = ManagementClientState.CONNECTED;
 
-                OnStateChanged?.Invoke(ManagementClientState.CONNECTED);
+                    Thread readThread = new Thread(new ThreadStart(ReadData));
+                    readThread.Start();
 
-                Thread readThread = new Thread(new ThreadStart(ReadData));
-                readThread.Start();
+                    OnStateChanged?.Invoke(ManagementClientState.CONNECTING);
+                }
 
                 return true;
             }
@@ -86,8 +89,14 @@ namespace OpenVpn
 
         public void Disconnect()
         {
-            OnStateChanged?.Invoke(ManagementClientState.DISCONNECTED);
+            if (_client.Connected)
+            {
+                _client.Close();
+            }
 
+            _state = ManagementClientState.DISCONNECTED;
+
+            OnStateChanged?.Invoke(ManagementClientState.DISCONNECTED);
         }
 
         public void SendCommand( string name, string value)

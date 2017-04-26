@@ -5,6 +5,8 @@ using System.Text;
 using Grapevine.Interfaces.Server;
 using Grapevine.Server.Attributes;
 using Grapevine.Shared;
+using Grapevine.Server;
+using OpenVpn;
 
 namespace OpenVpnService
 {
