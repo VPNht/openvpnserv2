@@ -261,6 +261,13 @@ namespace OpenVpn
             if (source == "HOLD")
             {
                 ManagementClient.Instance.SendCommand("pid");
+                ManagementClient.Instance.SendCommand("bytecount", "1");
+                ManagementClient.Instance.SendCommand("state", "on");
+                ManagementClient.Instance.SendCommand("hold", "release");
+            }
+            else if( source == "PASSWORD" )
+            {
+                ManagementClient.Instance.SendCommand("username", "'Auth' mariusz201");
             }
         }
 
@@ -280,6 +287,10 @@ namespace OpenVpn
             if (command == "pid")
             {
                 ManagementClient.Instance.OpenVpnPID = message.Substring(4, message.Length - 6);
+            }
+            else if (command == "username")
+            {
+                ManagementClient.Instance.SendCommand("password", "'Auth' vpnht2017");
             }
         }
 
