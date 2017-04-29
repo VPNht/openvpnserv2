@@ -257,6 +257,11 @@ namespace OpenVpn
         private void Client_OnMessageReceived(string source, string message)
         {
             EventLog.WriteEntry("[MSG] " + source + ":" + message);
+
+            if (source == "HOLD")
+            {
+                ManagementClient.Instance.SendCommand("pid");
+            }
         }
 
         private void Client_OnCommandMessageReceived(string command, string[] messages)
@@ -270,6 +275,12 @@ namespace OpenVpn
         private void Client_OnCommandSucceeded(string command, string message)
         {
             EventLog.WriteEntry("[OK] " + command + ":" + message);
+
+            // pid=$PID\r\n
+            if (command == "pid")
+            {
+                ManagementClient.Instance.OpenVpnPID = message.Substring(4, message.Length - 6);
+            }
         }
 
         private void Client_OnCommandFailed(string command, string message)

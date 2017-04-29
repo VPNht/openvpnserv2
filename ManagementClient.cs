@@ -38,35 +38,43 @@ namespace OpenVpn
 
         public static ManagementClient Instance = new ManagementClient();
         
-        private TcpClient _client = null;
-        private NetworkStream _stream = null;
-        private ManagementClientState _state = ManagementClientState.DISCONNECTED;
-        private Queue<ManagementClientCommand> _commands = new Queue<ManagementClientCommand>();
+        private TcpClient Client = null;
+        private NetworkStream Stream = null;
+        private Queue<ManagementClientCommand> Commands = new Queue<ManagementClientCommand>();
 
-        public ManagementClient()
+        public String OpenVpnPID
         {
+            get;
+            set;
         }
 
         public ManagementClientState State
         {
-            get { return _state; }
+            get;
+            private set;
         }
 
         public ManagementClientCommand Command
         {
-            get { return _commands.First(); }
+            get { return Commands.First(); }
+        }
+
+        public ManagementClient()
+        {
+            this.OpenVpnPID = "";
+            this.State = ManagementClientState.DISCONNECTED;
         }
 
         public bool Connect(int port)
         {
             try
             {
-                if ( _client == null || !_client.Connected )
+                if (this.Client == null || !this.Client.Connected )
                 {
-                    _client = new TcpClient();
-                    _client.Connect("127.0.0.1", port);
-                    _stream = _client.GetStream();
-                    _state = ManagementClientState.CONNECTED;
+                    this.Client = new TcpClient();
+                    this.Client.Connect("127.0.0.1", port);
+                    this.Stream = Client.GetStream();
+                    this.State = ManagementClientState.CONNECTED;
 
                     Thread readThread = new Thread(new ThreadStart(ReadData));
                     readThread.Start();
@@ -84,12 +92,12 @@ namespace OpenVpn
 
         public void Disconnect()
         {
-            if (_client.Connected)
+            if (this.Client.Connected)
             {
-                _client.Close();
+                this.Client.Close();
             }
 
-            _state = ManagementClientState.DISCONNECTED;
+            this.State = ManagementClientState.DISCONNECTED;
 
             OnStateChanged?.Invoke(ManagementClientState.DISCONNECTED);
         }
@@ -99,9 +107,9 @@ namespace OpenVpn
             ManagementClientCommand command = new ManagementClientCommand();
             command.Name = name;
             command.Value = value;
-            _commands.Enqueue(command);
+            this.Commands.Enqueue(command);
 
-            if (_commands.Count == 1)
+            if (this.Commands.Count == 1)
             {
                 SendNextCommand();
             }
@@ -109,10 +117,10 @@ namespace OpenVpn
 
         private void SendNextCommand()
         {
-            if (_commands.Count != 0)
+            if (this.Commands.Count != 0)
             {
                 byte[] data = System.Text.Encoding.UTF8.GetBytes(Command.Name + " " + Command.Value + "\r\n");
-                _stream.Write(data, 0, data.Length);
+                Stream.Write(data, 0, data.Length);
             }
         }
 
@@ -124,7 +132,7 @@ namespace OpenVpn
 
                 while (State == ManagementClientState.CONNECTED)
                 {
-                    int bytesRead = _stream.Read(buffer, 0, 10240);
+                    int bytesRead = Stream.Read(buffer, 0, 10240);
                     if (bytesRead == 0) continue;
 
                     string response = System.Text.Encoding.UTF8.GetString(buffer, 0, bytesRead);
@@ -150,7 +158,7 @@ namespace OpenVpn
                         string text = response.Substring(9);
                         OnCommandSucceeded(Command.Name, text);
 
-                        _commands.Dequeue();
+                        Commands.Dequeue();
                         SendNextCommand();
                     }
 
@@ -161,7 +169,7 @@ namespace OpenVpn
                         string text = response.Substring(7);
                         OnCommandFailed(Command.Name, text);
 
-                        _commands.Dequeue();
+                        Commands.Dequeue();
                         SendNextCommand();
                     }
 
