@@ -16,8 +16,31 @@ namespace OpenVpnService
         [RestRoute(HttpMethod = HttpMethod.GET, PathInfo = "/status")]
         public IHttpContext Status(IHttpContext context)
         {
+            ManagementClient client = ManagementClient.Instance;
+
+            StringBuilder response = new StringBuilder();
+
+            response.Append("{");
+
+            if (ManagementClient.Instance.OpenVpnState == OpenVpnState.CONNECTED)
+            {
+                response.AppendFormat("\"clientState\": \"{0}\",", client.ClientState.ToString());
+                response.AppendFormat("\"connectionState\": \"{0}\",", client.OpenVpnState.ToString());
+                response.AppendFormat("\"localIP\": \"{0}\",", client.LocalIP.ToString());
+                response.AppendFormat("\"remoteIP\": \"{0}\",", client.RemoteIP.ToString());
+                response.AppendFormat("\"uploadedBytes\": {0},", client.UploadedBytes);
+                response.AppendFormat("\"downloadedBytes\": {0}", client.DownloadedBytes);
+            }
+            else
+            {
+                response.AppendFormat("\"clientState\": \"{0}\",", client.ClientState.ToString());
+                response.AppendFormat("\"connectionState\": \"{0}\"", client.OpenVpnState.ToString());
+            }
+
+            response.Append("}");
+
             context.Response.StatusCode = HttpStatusCode.Ok;
-            context.Response.SendResponse(ManagementClient.Instance.ClientState.ToString());
+            context.Response.SendResponse(response.ToString());
             return context;
         }
 
