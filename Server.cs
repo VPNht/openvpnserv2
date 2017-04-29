@@ -17,7 +17,7 @@ namespace OpenVpnService
         public IHttpContext Status(IHttpContext context)
         {
             context.Response.StatusCode = HttpStatusCode.Ok;
-            context.Response.SendResponse(ManagementClient.Instance.State.ToString());
+            context.Response.SendResponse(ManagementClient.Instance.ClientState.ToString());
             return context;
         }
 

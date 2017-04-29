@@ -56,10 +56,16 @@ namespace OpenVpn
             set;
         }
 
-        public ClientState State
+        public ClientState ClientState
         {
             get;
             private set;
+        }
+
+        public OpenVpnState OpenVpnState
+        {
+            get;
+            set;
         }
 
         public ClientCommand Command
@@ -79,10 +85,22 @@ namespace OpenVpn
             set;
         }
 
+        public IPAddress LocalIP
+        {
+            get;
+            set;
+        }
+
+        public IPAddress RemoteIP
+        {
+            get;
+            set;
+        }
+
         public ManagementClient()
         {
             this.OpenVpnPID = "";
-            this.State = ClientState.DISCONNECTED;
+            this.ClientState = ClientState.DISCONNECTED;
         }
 
         public bool Connect(int port)
@@ -94,7 +112,7 @@ namespace OpenVpn
                     this.Client = new TcpClient();
                     this.Client.Connect("127.0.0.1", port);
                     this.Stream = Client.GetStream();
-                    this.State = ClientState.CONNECTED;
+                    this.ClientState = ClientState.CONNECTED;
 
                     Thread readThread = new Thread(new ThreadStart(ReadData));
                     readThread.Start();
@@ -117,7 +135,7 @@ namespace OpenVpn
                 this.Client.Close();
             }
 
-            this.State = ClientState.DISCONNECTED;
+            this.ClientState = ClientState.DISCONNECTED;
 
             OnStateChanged?.Invoke(ClientState.DISCONNECTED, OpenVpnState.DISCONNECTED);
         }
@@ -150,7 +168,7 @@ namespace OpenVpn
             {
                 byte[] buffer = new byte[10240];
 
-                while (State == ClientState.CONNECTED)
+                while (ClientState == ClientState.CONNECTED)
                 {
                     int bytesRead = Stream.Read(buffer, 0, 10240);
                     if (bytesRead == 0) continue;

@@ -276,6 +276,45 @@ namespace OpenVpn
                 ManagementClient.Instance.UploadedBytes = Int32.Parse(upload);
                 ManagementClient.Instance.DownloadedBytes = Int32.Parse(download);
             }
+            else if( source == "STATE" )
+            {
+                String[] parameters = message.Split(',');
+                String timestamp = parameters[0];
+                String state = parameters[1];
+                String localIP = parameters[3];
+                String remoteIP = parameters[4];
+
+                switch (state)
+                {
+                    case "WAIT":
+                        ManagementClient.Instance.OpenVpnState = OpenVpnState.CONNECTING;
+                        break;
+
+                    case "AUTH":
+                        ManagementClient.Instance.OpenVpnState = OpenVpnState.AUTHENTICATING;
+                        break;
+
+                    case "GET_CONFIG":
+                    case "ASSIGN_IP":
+                    case "ADD_ROUTES":
+                        ManagementClient.Instance.OpenVpnState = OpenVpnState.CONFIGURATING;
+                        break;
+
+                    case "CONNECTED":
+                        ManagementClient.Instance.LocalIP = IPAddress.Parse(localIP);
+                        ManagementClient.Instance.RemoteIP = IPAddress.Parse(remoteIP);
+                        ManagementClient.Instance.OpenVpnState = OpenVpnState.CONNECTED;
+                        break;
+
+                    case "RECONNECTING":
+                        ManagementClient.Instance.OpenVpnState = OpenVpnState.RECONNECTING;
+                        break;
+
+                    case "EXITING":
+                        ManagementClient.Instance.OpenVpnState = OpenVpnState.DISCONNECTED;
+                        break;
+                }
+            }
         }
 
         private void Client_OnCommandMessageReceived(string command, string[] messages)
