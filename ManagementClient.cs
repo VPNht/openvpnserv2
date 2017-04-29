@@ -94,7 +94,7 @@ namespace OpenVpn
             OnStateChanged?.Invoke(ManagementClientState.DISCONNECTED);
         }
 
-        public void SendCommand( string name, string value)
+        public void SendCommand( string name, string value = "")
         {
             ManagementClientCommand command = new ManagementClientCommand();
             command.Name = name;
