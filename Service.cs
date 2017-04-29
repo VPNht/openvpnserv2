@@ -249,9 +249,8 @@ namespace OpenVpn
             return 0;
         }
 
-        private void Client_OnStateChanged(ManagementClientState state)
+        private void Client_OnStateChanged(ClientState clientState, OpenVpnState openVpnState)
         {
-            EventLog.WriteEntry("ManagementClient state: " + state.ToString());
         }
 
         private void Client_OnMessageReceived(string source, string message)
@@ -268,6 +267,14 @@ namespace OpenVpn
             else if( source == "PASSWORD" )
             {
                 ManagementClient.Instance.SendCommand("username", "'Auth' mariusz201");
+            }
+            else if( source == "BYTECOUNT" )
+            {
+                int separator = message.IndexOf(",");
+                String upload = message.Substring(0, separator++);
+                String download = message.Substring(separator, message.Length - 2 - separator);
+                ManagementClient.Instance.UploadedBytes = Int32.Parse(upload);
+                ManagementClient.Instance.DownloadedBytes = Int32.Parse(download);
             }
         }
 

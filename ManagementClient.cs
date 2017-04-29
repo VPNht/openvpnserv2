@@ -8,22 +8,30 @@ using System.Threading;
 
 namespace OpenVpn
 {
-    public struct ManagementClientCommand
+    public struct ClientCommand
     {
         public string Name;
         public string Value;
     };
 
-    public enum ManagementClientState
+    public enum ClientState
     {
-        DISCONNECTED = 0,
+        DISCONNECTED,
         CONNECTING,
-        AUTHENTICATING,
-        RECONNECTING,
         CONNECTED
     };
 
-    public delegate void HandleState(ManagementClientState state);
+    public enum OpenVpnState
+    {
+        DISCONNECTED,
+        CONNECTING,
+        RECONNECTING,
+        AUTHENTICATING,
+        CONFIGURATING,
+        CONNECTED
+    };
+
+    public delegate void HandleState(ClientState clientState, OpenVpnState openVpnState);
     public delegate void HandleMessage(string source, string message);
     public delegate void HandleCommand(string command, string message);
     public delegate void HandleMultiLineCommand(string command, string[] messages);
@@ -40,7 +48,7 @@ namespace OpenVpn
         
         private TcpClient Client = null;
         private NetworkStream Stream = null;
-        private Queue<ManagementClientCommand> Commands = new Queue<ManagementClientCommand>();
+        private Queue<ClientCommand> Commands = new Queue<ClientCommand>();
 
         public String OpenVpnPID
         {
@@ -48,21 +56,33 @@ namespace OpenVpn
             set;
         }
 
-        public ManagementClientState State
+        public ClientState State
         {
             get;
             private set;
         }
 
-        public ManagementClientCommand Command
+        public ClientCommand Command
         {
             get { return Commands.First(); }
+        }
+
+        public int DownloadedBytes
+        {
+            get;
+            set;
+        }
+
+        public int UploadedBytes
+        {
+            get;
+            set;
         }
 
         public ManagementClient()
         {
             this.OpenVpnPID = "";
-            this.State = ManagementClientState.DISCONNECTED;
+            this.State = ClientState.DISCONNECTED;
         }
 
         public bool Connect(int port)
@@ -74,12 +94,12 @@ namespace OpenVpn
                     this.Client = new TcpClient();
                     this.Client.Connect("127.0.0.1", port);
                     this.Stream = Client.GetStream();
-                    this.State = ManagementClientState.CONNECTED;
+                    this.State = ClientState.CONNECTED;
 
                     Thread readThread = new Thread(new ThreadStart(ReadData));
                     readThread.Start();
 
-                    OnStateChanged?.Invoke(ManagementClientState.CONNECTING);
+                    OnStateChanged?.Invoke(ClientState.CONNECTING, OpenVpnState.DISCONNECTED);
                 }
 
                 return true;
@@ -97,14 +117,14 @@ namespace OpenVpn
                 this.Client.Close();
             }
 
-            this.State = ManagementClientState.DISCONNECTED;
+            this.State = ClientState.DISCONNECTED;
 
-            OnStateChanged?.Invoke(ManagementClientState.DISCONNECTED);
+            OnStateChanged?.Invoke(ClientState.DISCONNECTED, OpenVpnState.DISCONNECTED);
         }
 
         public void SendCommand( string name, string value = "")
         {
-            ManagementClientCommand command = new ManagementClientCommand();
+            ClientCommand command = new ClientCommand();
             command.Name = name;
             command.Value = value;
             this.Commands.Enqueue(command);
@@ -130,7 +150,7 @@ namespace OpenVpn
             {
                 byte[] buffer = new byte[10240];
 
-                while (State == ManagementClientState.CONNECTED)
+                while (State == ClientState.CONNECTED)
                 {
                     int bytesRead = Stream.Read(buffer, 0, 10240);
                     if (bytesRead == 0) continue;
