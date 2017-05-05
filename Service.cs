@@ -255,26 +255,28 @@ namespace OpenVpn
 
         private void Client_OnMessageReceived(string source, string message)
         {
+            var client = ManagementClient.Instance;
+
             EventLog.WriteEntry("[MSG] " + source + ":" + message);
 
             if (source == "HOLD")
             {
-                ManagementClient.Instance.SendCommand("pid");
-                ManagementClient.Instance.SendCommand("bytecount", "1");
-                ManagementClient.Instance.SendCommand("state", "on");
-                ManagementClient.Instance.SendCommand("hold", "release");
+                client.SendCommand("pid");
+                client.SendCommand("bytecount", "1");
+                client.SendCommand("state", "on");
+                client.SendCommand("hold", "release");
             }
             else if( source == "PASSWORD" )
             {
-                ManagementClient.Instance.SendCommand("username", "'Auth' mariusz201");
+                client.SendCommand("username", "'Auth' " + client.Username);
             }
             else if( source == "BYTECOUNT" )
             {
                 int separator = message.IndexOf(",");
                 String upload = message.Substring(0, separator++);
                 String download = message.Substring(separator, message.Length - 2 - separator);
-                ManagementClient.Instance.UploadedBytes = Int32.Parse(upload);
-                ManagementClient.Instance.DownloadedBytes = Int32.Parse(download);
+                client.UploadedBytes = Int32.Parse(upload);
+                client.DownloadedBytes = Int32.Parse(download);
             }
             else if( source == "STATE" )
             {
@@ -287,31 +289,31 @@ namespace OpenVpn
                 switch (state)
                 {
                     case "WAIT":
-                        ManagementClient.Instance.OpenVpnState = OpenVpnState.CONNECTING;
+                        client.OpenVpnState = OpenVpnState.CONNECTING;
                         break;
 
                     case "AUTH":
-                        ManagementClient.Instance.OpenVpnState = OpenVpnState.AUTHENTICATING;
+                        client.OpenVpnState = OpenVpnState.AUTHENTICATING;
                         break;
 
                     case "GET_CONFIG":
                     case "ASSIGN_IP":
                     case "ADD_ROUTES":
-                        ManagementClient.Instance.OpenVpnState = OpenVpnState.CONFIGURATING;
+                        client.OpenVpnState = OpenVpnState.CONFIGURATING;
                         break;
 
                     case "CONNECTED":
-                        ManagementClient.Instance.LocalIP = IPAddress.Parse(localIP);
-                        ManagementClient.Instance.RemoteIP = IPAddress.Parse(remoteIP);
-                        ManagementClient.Instance.OpenVpnState = OpenVpnState.CONNECTED;
+                        client.LocalIP = IPAddress.Parse(localIP);
+                        client.RemoteIP = IPAddress.Parse(remoteIP);
+                        client.OpenVpnState = OpenVpnState.CONNECTED;
                         break;
 
                     case "RECONNECTING":
-                        ManagementClient.Instance.OpenVpnState = OpenVpnState.RECONNECTING;
+                        client.OpenVpnState = OpenVpnState.RECONNECTING;
                         break;
 
                     case "EXITING":
-                        ManagementClient.Instance.OpenVpnState = OpenVpnState.DISCONNECTED;
+                        client.OpenVpnState = OpenVpnState.DISCONNECTED;
                         break;
                 }
             }
@@ -327,16 +329,18 @@ namespace OpenVpn
 
         private void Client_OnCommandSucceeded(string command, string message)
         {
+            var client = ManagementClient.Instance;
+
             EventLog.WriteEntry("[OK] " + command + ":" + message);
 
             // pid=$PID\r\n
             if (command == "pid")
             {
-                ManagementClient.Instance.OpenVpnPID = message.Substring(4, message.Length - 6);
+                client.OpenVpnPID = message.Substring(4, message.Length - 6);
             }
             else if (command == "username")
             {
-                ManagementClient.Instance.SendCommand("password", "'Auth' vpnht2017");
+                client.SendCommand("password", "'Auth' " + client.Password);
             }
         }
 

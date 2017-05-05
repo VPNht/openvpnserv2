@@ -97,6 +97,18 @@ namespace OpenVpn
             set;
         }
 
+        public String Username
+        {
+            get;
+            set;
+        }
+
+        public String Password
+        {
+            get;
+            set;
+        }
+
         public ManagementClient()
         {
             this.OpenVpnPID = "";
