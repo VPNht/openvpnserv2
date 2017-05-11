@@ -24,6 +24,7 @@ namespace OpenVpn
     public enum OpenVpnState
     {
         DISCONNECTED,
+        DISCONNECTING,
         CONNECTING,
         RECONNECTING,
         AUTHENTICATING,
@@ -119,7 +120,7 @@ namespace OpenVpn
         {
             try
             {
-                if (this.Client == null || !this.Client.Connected )
+                if (this.Client == null || this.ClientState == ClientState.DISCONNECTED )
                 {
                     this.Client = new TcpClient();
                     this.Client.Connect("127.0.0.1", port);
@@ -142,14 +143,11 @@ namespace OpenVpn
 
         public void Disconnect()
         {
-            if (this.Client.Connected)
-            {
-                this.Client.Close();
-            }
+            this.Stream.Close();
+            this.Client.Close();
 
             this.ClientState = ClientState.DISCONNECTED;
-
-            OnStateChanged?.Invoke(ClientState.DISCONNECTED, OpenVpnState.DISCONNECTED);
+            this.OpenVpnState = OpenVpnState.DISCONNECTED;
         }
 
         public void SendCommand( string name, string value = "")

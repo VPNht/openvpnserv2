@@ -62,7 +62,19 @@ namespace OpenVpnService
         [RestRoute(HttpMethod = HttpMethod.GET, PathInfo = "/disconnect")]
         public IHttpContext Disconnect(IHttpContext context)
         {
-            ManagementClient.Instance.Disconnect();
+            var client = ManagementClient.Instance;
+
+            // Connected to VPN server, exit gracefully
+            if (client.OpenVpnState == OpenVpnState.CONNECTED)
+            {
+                client.SendCommand("signal", "SIGTERM");
+                client.OpenVpnState = OpenVpnState.DISCONNECTING;
+            }
+            // Not connected to VPN yet, close connection to local OVPN
+            else if (client.ClientState != ClientState.DISCONNECTED )
+            {
+                client.Disconnect();
+            }
 
             context.Response.StatusCode = HttpStatusCode.Ok;
             context.Response.SendResponse("");

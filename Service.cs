@@ -259,7 +259,7 @@ namespace OpenVpn
 
             EventLog.WriteEntry("[MSG] " + source + ":" + message);
 
-            if (source == "HOLD")
+            if (source == "INFO")
             {
                 client.SendCommand("pid");
                 client.SendCommand("bytecount", "1");
@@ -311,10 +311,6 @@ namespace OpenVpn
                     case "RECONNECTING":
                         client.OpenVpnState = OpenVpnState.RECONNECTING;
                         break;
-
-                    case "EXITING":
-                        client.OpenVpnState = OpenVpnState.DISCONNECTED;
-                        break;
                 }
             }
         }
@@ -341,6 +337,10 @@ namespace OpenVpn
             else if (command == "username")
             {
                 client.SendCommand("password", "'Auth' " + client.Password);
+            }
+            else if (command == "signal")
+            {
+                client.Disconnect();
             }
         }
 
