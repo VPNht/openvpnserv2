@@ -118,26 +118,29 @@ namespace OpenVpn
 
         public bool Connect(int port)
         {
-            try
+            while (true)
             {
-                if (this.Client == null || this.ClientState == ClientState.DISCONNECTED )
+                try
                 {
-                    this.Client = new TcpClient();
-                    this.Client.Connect("127.0.0.1", port);
-                    this.Stream = Client.GetStream();
-                    this.ClientState = ClientState.CONNECTED;
+                    if (this.ClientState == ClientState.DISCONNECTED || this.ClientState == ClientState.CONNECTING)
+                    {
+                        this.ClientState = ClientState.CONNECTING;
+                        this.Client = new TcpClient();
+                        this.Client.Connect("127.0.0.1", port);
+                        this.Stream = Client.GetStream();
+                        this.ClientState = ClientState.CONNECTED;
+                        this.OpenVpnState = OpenVpnState.CONNECTING;
 
-                    Thread readThread = new Thread(new ThreadStart(ReadData));
-                    readThread.Start();
+                        Thread readThread = new Thread(new ThreadStart(ReadData));
+                        readThread.Start();
+                    }
 
-                    OnStateChanged?.Invoke(ClientState.CONNECTING, OpenVpnState.DISCONNECTED);
+                    return true;
                 }
-
-                return true;
-            }
-            catch
-            {
-                return false;
+                catch (SocketException e)
+                {
+                    Thread.Sleep(500);
+                }
             }
         }
 

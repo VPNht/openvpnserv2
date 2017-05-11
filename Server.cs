@@ -47,15 +47,21 @@ namespace OpenVpnService
         [RestRoute(HttpMethod = HttpMethod.GET, PathInfo = "/connect")]
         public IHttpContext Connect(IHttpContext context)
         {
-            var encodedUsername = context.Request.QueryString["u"] ?? "";
-            var encodedPassword = context.Request.QueryString["p"] ?? "";
+            var client = ManagementClient.Instance;
 
-            ManagementClient.Instance.Username = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(encodedUsername));
-            ManagementClient.Instance.Password = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(encodedPassword));
-            ManagementClient.Instance.Connect(53813);
+            if (client.ClientState != ClientState.CONNECTING && client.OpenVpnState != OpenVpnState.CONNECTING )
+            {
+                var encodedUsername = context.Request.QueryString["u"] ?? "";
+                var encodedPassword = context.Request.QueryString["p"] ?? "";
 
-            context.Response.StatusCode = HttpStatusCode.Ok;
-            context.Response.SendResponse("");
+                client.Username = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(encodedUsername));
+                client.Password = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(encodedPassword));
+                client.Connect(53813);
+
+                context.Response.StatusCode = HttpStatusCode.Ok;
+                context.Response.SendResponse("");
+            }
+            
             return context;
         }
 
