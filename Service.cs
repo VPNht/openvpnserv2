@@ -306,6 +306,7 @@ namespace OpenVpn
                         client.LocalIP = IPAddress.Parse(localIP);
                         client.RemoteIP = IPAddress.Parse(remoteIP);
                         client.OpenVpnState = OpenVpnState.CONNECTED;
+                        client.ConnectionStartTime = DateTime.Now;
                         break;
 
                     case "RECONNECTING":

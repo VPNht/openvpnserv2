@@ -29,7 +29,8 @@ namespace OpenVpnService
                 response.AppendFormat("\"localIP\": \"{0}\",", client.LocalIP.ToString());
                 response.AppendFormat("\"remoteIP\": \"{0}\",", client.RemoteIP.ToString());
                 response.AppendFormat("\"uploadedBytes\": {0},", client.UploadedBytes);
-                response.AppendFormat("\"downloadedBytes\": {0}", client.DownloadedBytes);
+                response.AppendFormat("\"downloadedBytes\": {0},", client.DownloadedBytes);
+                response.AppendFormat("\"uptimeInSeconds\": {0}", (DateTime.Now - client.ConnectionStartTime).Seconds);
             }
             else
             {

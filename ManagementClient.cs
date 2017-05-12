@@ -110,6 +110,12 @@ namespace OpenVpn
             set;
         }
 
+        public DateTime ConnectionStartTime
+        {
+            get;
+            set;
+        }
+
         public ManagementClient()
         {
             this.OpenVpnPID = "";
