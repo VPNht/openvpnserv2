@@ -1,13 +1,13 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-[assembly: AssemblyTitle("Openvpnserv2")]
-[assembly: AssemblyDescription("Windows service for running OpenVPN connections in the background")]
-[assembly: AssemblyProduct("Openvpnserv2")]
-[assembly: AssemblyVersion("1.3.0.0")]
-[assembly: AssemblyFileVersion("1.3.0.0")]
-[assembly: AssemblyInformationalVersion("1.3.0.0")]
-[assembly: AssemblyCompany("The OpenVPN project")]
-[assembly: AssemblyCopyright("Copyright © OpenVPN project 2016")]
+[assembly: AssemblyTitle("VPN.ht")]
+[assembly: AssemblyDescription("VPN.ht Windows service")]
+[assembly: AssemblyProduct("VPN.ht")]
+[assembly: AssemblyVersion("0.0.0.1")]
+[assembly: AssemblyFileVersion("0.0.0.1")]
+[assembly: AssemblyInformationalVersion("0.0.0.1")]
+[assembly: AssemblyCompany("VPN.ht")]
+[assembly: AssemblyCopyright("Copyright © VPN.ht project 2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

@@ -2,6 +2,8 @@
 {
     partial class ProjectInstaller
     {
+        static private string SERVICE_NAME = OpenVpnService.DefaultServiceName; 
+
         /// <summary>
         /// Required designer variable.
         /// </summary>
@@ -39,7 +41,7 @@
             // 
             // serviceInstaller
             // 
-            this.serviceInstaller.ServiceName = "OpenVpnService";
+            this.serviceInstaller.ServiceName = SERVICE_NAME;
             this.serviceInstaller.ServicesDependedOn = new string[] {
         "Dhcp",
         "tap0901"};

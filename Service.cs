@@ -15,7 +15,7 @@ namespace OpenVpn
 {
     class OpenVpnService : System.ServiceProcess.ServiceBase
     {
-        public static string DefaultServiceName = "OpenVpnService";
+        public static string DefaultServiceName = "VPN.ht";
 
         public const string Package = "openvpn";
         private List<OpenVpnChild> Subprocesses;
