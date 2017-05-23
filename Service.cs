@@ -274,7 +274,7 @@ namespace OpenVpn
             {
                 int separator = message.IndexOf(",");
                 String upload = message.Substring(0, separator++);
-                String download = message.Substring(separator, message.Length - 2 - separator);
+                String download = message.Substring(separator, message.Length - separator);
                 client.UploadedBytes = Int32.Parse(upload);
                 client.DownloadedBytes = Int32.Parse(download);
             }
