@@ -259,7 +259,7 @@ namespace OpenVpn
 
             EventLog.WriteEntry("[MSG] " + source + ":" + message);
 
-            if (source == "INFO")
+            if (source == "HOLD")
             {
                 client.SendCommand("pid");
                 client.SendCommand("bytecount", "1");
