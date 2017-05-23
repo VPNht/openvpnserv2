@@ -189,57 +189,47 @@ namespace OpenVpn
             {
                 byte[] buffer = new byte[10240];
 
-                while (ClientState == ClientState.CONNECTED)
+                while (ClientState == ClientState.CONNECTED) 
                 {
                     int bytesRead = Stream.Read(buffer, 0, 10240);
                     if (bytesRead == 0) continue;
 
-                    string response = System.Text.Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                    string fullResponse = System.Text.Encoding.UTF8.GetString(buffer, 0, bytesRead);
 
-                    // Real-time messages:
-                    // >[SOURCE]:[MESSAGE]
-                    if (response.StartsWith(">") && OnMessageReceived != null)
+                    string[] messages = fullResponse.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+
+                    foreach (var message in messages)
                     {
-                        string[] messages = response.Split(new char[] { '>' }, StringSplitOptions.RemoveEmptyEntries);
-
-                        foreach (string message in messages)
+                        // Real-time message
+                        // >[SOURCE]:[MESSAGE]
+                        if (message.StartsWith(">"))
                         {
-                            string source = message.Substring(0, message.IndexOf(':', 1));
-                            string text = message.Substring(source.Length + 1);
+                            int delimeter = message.IndexOf(':');
+                            string source = message.Substring(1, delimeter - 1);
+                            string text = message.Substring(delimeter + 1);
                             OnMessageReceived(source, text);
                         }
-                    }
+                        // Command success
+                        // SUCCESS: [text]
+                        else if (message.StartsWith("SUCCESS: "))
+                        {
+                            string text = message.Substring(9);
+                            OnCommandSucceeded(Command.Name, text);
 
-                    // Command success
-                    // SUCCESS: [text]
-                    else if (response.StartsWith("SUCCESS: ") && OnCommandSucceeded != null)
-                    {
-                        string text = response.Substring(9);
-                        OnCommandSucceeded(Command.Name, text);
+                            Commands.Dequeue();
+                            SendNextCommand();
+                        }
 
-                        Commands.Dequeue();
-                        SendNextCommand();
-                    }
+                        // Command failure
+                        // ERROR: [text]
+                        else if (message.StartsWith("ERROR: "))
+                        {
+                            string text = message.Substring(7);
+                            OnCommandFailed(Command.Name, text);
 
-                    // Command failure
-                    // ERROR: [text]
-                    else if (response.StartsWith("ERROR: ") && OnCommandFailed != null)
-                    {
-                        string text = response.Substring(7);
-                        OnCommandFailed(Command.Name, text);
-
-                        Commands.Dequeue();
-                        SendNextCommand();
-                    }
-
-                    // Multi-line command response
-                    // .
-                    // .
-                    // [END]
-                    else
-                    {
-                        string[] messages = response.Split(new string[] { "\r\n", "END" }, StringSplitOptions.RemoveEmptyEntries);
-                        OnCommandMessageReceived(Command.Name, messages);
+                            Commands.Dequeue();
+                            SendNextCommand();
+                        }
                     }
                 }
             }
