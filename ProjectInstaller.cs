@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration.Install;
+using System.Diagnostics;
 using System.Linq;
 using System.ServiceProcess;
 
@@ -14,6 +15,38 @@ namespace OpenVpn
         public ProjectInstaller()
         {
             InitializeComponent();
+
+            EventLogInstaller installer = FindInstaller(this.Installers);
+
+            if (installer != null)
+            {
+                installer.Log = OpenVpnService.DefaultServiceName;
+
+                if (!EventLog.SourceExists(installer.Log))
+                {
+                    EventLog.CreateEventSource(installer.Log, "VPN");
+                }
+            }
+        }
+
+        private EventLogInstaller FindInstaller(InstallerCollection installers)
+        {
+            foreach (Installer installer in installers)
+            {
+                if (installer is EventLogInstaller)
+                {
+                    return (EventLogInstaller)installer;
+                }
+
+                EventLogInstaller eventLogInstaller = FindInstaller(installer.Installers);
+
+                if (eventLogInstaller != null)
+                {
+                    return eventLogInstaller;
+                }
+            }
+
+            return null;
         }
 
 
@@ -29,7 +62,11 @@ namespace OpenVpn
                 {
                     installer.Install(state);
                     installer.Commit(state);
-                } catch
+                }
+                catch (ArgumentException e)
+                {
+                }
+                catch (Exception e)
                 {
                     installer.Rollback(state);
                     throw;

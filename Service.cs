@@ -30,7 +30,7 @@ namespace OpenVpn
             // However if there is some kind of stuck state where OpenVPN.exe hangs
             // after resuming, then this will help
             this.CanHandlePowerEvent = false;
-            this.AutoLog = true;
+            this.AutoLog = false;
 
             this.Subprocesses = new List<OpenVpnChild>();
 
