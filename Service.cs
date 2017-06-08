@@ -13,7 +13,22 @@ using Grapevine.Server;
 
 namespace OpenVpn
 {
-    class OpenVpnService : System.ServiceProcess.ServiceBase
+	class DebuggableService : ServiceBase
+	{
+		protected static void Start<T>(string[] args) where T : DebuggableService, new()
+		{
+			#if DEBUG
+			(new T()).OnStart(new string[1]);
+			ServiceBase.Run(new T());
+			#else
+			ServiceBase[] ServicesToRun;
+			ServicesToRun = new ServiceBase[] { new T() };
+			ServiceBase.Run(ServicesToRun);
+			#endif
+		}
+	}
+
+	class OpenVpnService : DebuggableService
     {
         public static string DefaultServiceName = "VPN.ht";
 
@@ -208,7 +223,7 @@ namespace OpenVpn
         {
             if (args.Length == 0)
             {
-                Run(new OpenVpnService());
+                DebuggableService.Start<OpenVpnService>(args);
             }
             else if (args[0] == "-install")
             {
