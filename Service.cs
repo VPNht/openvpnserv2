@@ -396,10 +396,9 @@ namespace OpenVpn
             /// SET UP PROCESS START INFO
             string[] procArgs = {
                 "--config",
-                "\"" + configFile + "\"",
-                "--service ",
-                "\"" + exitEvent + "\"" + " 0"
+                "\"" + configFile + "\""
             };
+
             this.startInfo = new System.Diagnostics.ProcessStartInfo()
             {
                 RedirectStandardInput = true,
