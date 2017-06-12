@@ -206,9 +206,6 @@ namespace OpenVpn
 
         public static int Main(string[] args)
         {
-#if DEBUG
-            System.Diagnostics.Debugger.Launch();
-#endif
             if (args.Length == 0)
             {
                 Run(new OpenVpnService());
