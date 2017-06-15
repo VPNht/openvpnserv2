@@ -126,7 +126,7 @@ namespace OpenVpn
         {
             this.ClientState = ClientState.CONNECTING;
 
-            for (int connectionRetries = 0; connectionRetries < 5 && this.ClientState == ClientState.CONNECTING; connectionRetries++)
+            for (int connectionRetries = 0; connectionRetries < 30 && this.ClientState == ClientState.CONNECTING; connectionRetries++)
             {
                 try
                 {
@@ -143,7 +143,7 @@ namespace OpenVpn
                 }
                 catch (SocketException e)
                 {
-                    Thread.Sleep(250);
+                    Thread.Sleep(1000);
                 }
             }
 
