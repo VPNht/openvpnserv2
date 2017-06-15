@@ -18,7 +18,6 @@ namespace OpenVpn
 		protected static void Start<T>(string[] args) where T : DebuggableService, new()
 		{
 			#if DEBUG
-			(new T()).OnStart(new string[1]);
 			ServiceBase.Run(new T());
 			#else
 			ServiceBase[] ServicesToRun;
