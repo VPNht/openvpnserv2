@@ -161,17 +161,9 @@ namespace OpenVpn
 
         private void StopOpenVPN(RestServer server)
         {
-            RequestAdditionalTime(3000);
             foreach (var child in Subprocesses)
             {
-                child.SignalProcess();
-            }
-            // Kill all processes -- wait for 2500 msec at most
-            DateTime tEnd = DateTime.Now.AddMilliseconds(2500.0);
-            foreach (var child in Subprocesses)
-            {
-                int timeout = (int)(tEnd - DateTime.Now).TotalMilliseconds;
-                child.StopProcess(timeout > 0 ? timeout : 0);
+                child.StopProcess();
             }
         }
 
@@ -461,19 +453,20 @@ namespace OpenVpn
         }
 
         // terminate process after a timeout
-        public void StopProcess(int timeout) {
+        public void StopProcess() {
             if (restartTimer != null) {
                 restartTimer.Stop();
             }
+
             try
             {
-                if (!process.WaitForExit(timeout))
-                {
-                    process.Exited -= Watchdog; // Don't restart the process after kill
-                    process.Kill();
-                }
+                process.Exited -= Watchdog; // Don't restart the process after kill
+                process.Kill();
+                process.WaitForExit();
             }
-            catch (InvalidOperationException) { }
+            catch (Exception e) {
+                Console.WriteLine("Exception thrown " + e.Message + e.StackTrace);
+            }
         }
 
         public void Wait() {
