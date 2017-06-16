@@ -71,8 +71,8 @@ namespace OpenVpnService
         {
             var client = ManagementClient.Instance;
 
-            // Connected to VPN server, exit gracefully
-            if (client.OpenVpnState == OpenVpnState.CONNECTED || client.OpenVpnState == OpenVpnState.CONNECTING)
+            // Connected or in the process of connecting to VPN server, exit gracefully
+            if (client.OpenVpnState != OpenVpnState.DISCONNECTED)
             {
 				client.SendCommand("signal", "SIGTERM");
                 client.OpenVpnState = OpenVpnState.DISCONNECTING;
