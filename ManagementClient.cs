@@ -46,6 +46,8 @@ namespace OpenVpn
         public event HandleMultiLineCommand OnCommandMessageReceived;
 
         public static ManagementClient Instance = new ManagementClient();
+
+        public static int MAX_CONNECTION_RETRIES = 30;
         
         private TcpClient Client = null;
         private NetworkStream Stream = null;
@@ -126,10 +128,12 @@ namespace OpenVpn
         {
             this.ClientState = ClientState.CONNECTING;
 
-            for (int connectionRetries = 0; connectionRetries < 30 && this.ClientState == ClientState.CONNECTING; connectionRetries++)
+            for (int connectionRetries = 0; connectionRetries < MAX_CONNECTION_RETRIES && this.ClientState == ClientState.CONNECTING; connectionRetries++)
             {
                 try
                 {
+                    Console.WriteLine("Connecting to management interface on port " + port + " (" + connectionRetries + "/" + MAX_CONNECTION_RETRIES + ")");
+
                     this.Client = new TcpClient();
                     this.Client.Connect("127.0.0.1", port);
                     this.Stream = Client.GetStream();
