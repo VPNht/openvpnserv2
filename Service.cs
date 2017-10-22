@@ -166,7 +166,7 @@ namespace OpenVpn
             try
             {
                 return RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, rView)
-                    .OpenSubKey("Software\\OpenVPN");
+                    .OpenSubKey("Software\\VPN.ht");
             }
             catch (ArgumentException)
             {
