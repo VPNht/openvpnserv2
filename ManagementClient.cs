@@ -158,8 +158,15 @@ namespace OpenVpn
 
         public void Disconnect()
         {
-            this.Stream.Close();
-            this.Client.Close();
+            if (this.Stream != null)
+            {
+                this.Stream.Close();
+            }
+
+            if (this.Client != null)
+            {
+                this.Client.Close();
+            }
 
             this.ClientState = ClientState.DISCONNECTED;
             this.OpenVpnState = OpenVpnState.DISCONNECTED;
