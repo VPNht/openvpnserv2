@@ -13,18 +13,29 @@ using Grapevine.Server;
 
 namespace OpenVpn
 {
-	class DebuggableService : ServiceBase
+	class DebuggableService
 	{
-		protected static void Start<T>(string[] args) where T : DebuggableService, new()
-		{
-			#if DEBUG
-			ServiceBase.Run(new T());
-			#else
-			ServiceBase[] ServicesToRun;
-			ServicesToRun = new ServiceBase[] { new T() };
-			ServiceBase.Run(ServicesToRun);
-			#endif
-		}
+        protected EventLog EventLog;
+
+        public DebuggableService() {
+            this.EventLog = new EventLog("VPN.ht");
+            this.EventLog.Source = "VPN.ht Service";
+            this.EventLog.Log = "VPN.ht Log";
+        }
+
+        public void Start(string[] args) {
+            this.OnStart(args);
+        }
+
+        public void Stop() {
+            this.OnStop();
+        }
+
+        protected virtual void OnStart(string[] args) {
+        }
+
+        protected virtual void OnStop() {
+        }
 	}
 
 	class OpenVpnService : DebuggableService
@@ -37,15 +48,6 @@ namespace OpenVpn
 
         public OpenVpnService()
         {
-            this.ServiceName = DefaultServiceName;
-            this.CanStop = true;
-            this.CanPauseAndContinue = false;
-            // N.B. if OpenVPN always dies when suspending, then this is unnecessary
-            // However if there is some kind of stuck state where OpenVPN.exe hangs
-            // after resuming, then this will help
-            this.CanHandlePowerEvent = false;
-            this.AutoLog = false;
-
             this.Subprocesses = new List<OpenVpnChild>();
 
             // Setup REST server
@@ -63,12 +65,16 @@ namespace OpenVpn
 
         protected override void OnStart(string[] args)
         {
-            Server.Start();
+			Console.WriteLine("Starting service");
+
+			Server.Start();
         }
 
         protected override void OnStop()
         {
-            Server.Stop();
+			Console.WriteLine("Stopping service");
+
+			Server.Stop();
         }
 
         private void StartOpenVPN(RestServer server)
@@ -219,43 +225,8 @@ namespace OpenVpn
 
         public static int Main(string[] args)
         {
-            if (args.Length == 0)
-            {
-                DebuggableService.Start<OpenVpnService>(args);
-            }
-            else if (args[0] == "-install")
-            {
-                try
-                {
-                    ProjectInstaller.Install();
-                }
-                catch (Exception e)
-                {
-                    Console.Error.WriteLine(e.Message);
-                    Console.Error.WriteLine(e.StackTrace);
-                    return 1;
-                }
-            }
-            else if (args[0] == "-remove")
-            {
-                try
-                {
-                    ProjectInstaller.Stop();
-                    ProjectInstaller.Uninstall();
-                }
-                catch (Exception e)
-                {
-                    Console.Error.WriteLine(e.Message);
-                    Console.Error.WriteLine(e.StackTrace);
-                    return 1;
-                }
-            }
-            else
-            {
-                Console.Error.WriteLine("Unknown command: " + args[0]);
-                return 1;
-            }
-
+            DebuggableService service = new OpenVpnService();
+            service.Start(args);
             return 0;
         }
 
@@ -395,8 +366,7 @@ namespace OpenVpn
             this.configFile = String.Copy(configFile);
             this.exitEvent = Path.GetFileName(configFile) + "_" + Process.GetCurrentProcess().Id.ToString();
             var justFilename = System.IO.Path.GetFileName(configFile);
-            var logFilename = config.logDir + "\\" +
-                    justFilename.Substring(0, justFilename.Length - config.configExt.Length) + ".log";
+            var logFilename = config.logDir + Path.DirectorySeparatorChar + justFilename.Substring(0, justFilename.Length - config.configExt.Length) + ".log";
 
             // FIXME: if (!init_security_attributes_allow_all (&sa))
             //{
