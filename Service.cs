@@ -129,21 +129,28 @@ namespace OpenVpn
                             continue;
                         }
 
-                        foreach (var configFilename in Directory.EnumerateFiles(config.configDir,
-                                                                                "*" + config.configExt,
-                                                                                System.IO.SearchOption.AllDirectories))
+                        // The necessary OpenVPN configuration file is fetched and saved by the client application
+                        // so we have to wait until it's available
+                        bool foundConfiguration = false;
+
+                        while (!foundConfiguration)
                         {
-                            try
+                            foreach (var configFilename in Directory.EnumerateFiles(config.configDir, "*" + config.configExt, System.IO.SearchOption.AllDirectories))
                             {
-                                var child = new OpenVpnChild(config, configFilename);
-                                Subprocesses.Add(child);
-                                child.Start();
+                                try
+                                {
+                                    foundConfiguration = true;
+                                    var child = new OpenVpnChild(config, configFilename);
+                                    Subprocesses.Add(child);
+                                    child.Start();
+                                }
+                                catch (Exception e)
+                                {
+                                    EventLog.WriteEntry("Caught exception " + e.Message + " when starting openvpn for " + configFilename);
+                                }
                             }
-                            catch (Exception e)
-                            {
-                                EventLog.WriteEntry("Caught exception " + e.Message + " when starting openvpn for "
-                                    + configFilename);
-                            }
+
+                            Thread.Sleep(1000);
                         }
                     }
                     catch (NullReferenceException e) /* e.g. missing registry values */
@@ -317,6 +324,10 @@ namespace OpenVpn
                         break;
                 }
             }
+			else if (source == "FATAL")
+			{
+				client.OpenVpnState = OpenVpnState.DISCONNECTED;
+			}
         }
 
         private void Client_OnCommandMessageReceived(string command, string[] messages)

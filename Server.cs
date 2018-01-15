@@ -56,9 +56,12 @@ namespace OpenVpnService
                 var encodedPassword = context.Request.QueryString["p"] ?? "";
                 var port = context.Request.QueryString["mp"] ?? "";
 
-                client.Username = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(encodedUsername));
-                client.Password = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(encodedPassword));
-                client.Connect(Int32.Parse(port));
+                if (encodedUsername != "" && encodedPassword != "" && port != "")
+                {
+                    client.Username = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(encodedUsername));
+                    client.Password = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(encodedPassword));
+                    client.Connect(Int32.Parse(port));
+                }
 
                 context.Response.StatusCode = HttpStatusCode.Ok;
                 context.Response.SendResponse("");

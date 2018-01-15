@@ -24,7 +24,7 @@ namespace OpenVpn
 
                 if (!EventLog.SourceExists(installer.Log))
                 {
-                    EventLog.CreateEventSource(installer.Log, "VPN");
+                    EventLog.CreateEventSource(installer.Log, "");
                 }
             }
         }
