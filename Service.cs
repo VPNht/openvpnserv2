@@ -321,6 +321,10 @@ namespace OpenVpn
                         break;
                 }
             }
+			else if (source == "FATAL")
+			{
+				client.OpenVpnState = OpenVpnState.DISCONNECTED;
+			}
         }
 
         private void Client_OnCommandMessageReceived(string command, string[] messages)
