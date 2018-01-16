@@ -118,6 +118,12 @@ namespace OpenVpn
             set;
         }
 
+		public String LastError
+		{
+			get;
+			set;
+		}
+
         public ManagementClient()
         {
             this.OpenVpnPID = "";
