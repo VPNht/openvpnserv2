@@ -35,13 +35,17 @@ namespace OpenVpnService
             else
             {
                 response.AppendFormat("\"clientState\": \"{0}\",", client.ClientState.ToString());
-                response.AppendFormat("\"connectionState\": \"{0}\"", client.OpenVpnState.ToString());
+                response.AppendFormat("\"connectionState\": \"{0}\",", client.OpenVpnState.ToString());
+				response.AppendFormat("\"error\": \"{0}\"", client.LastError);
             }
 
             response.Append("}");
 
             context.Response.StatusCode = HttpStatusCode.Ok;
             context.Response.SendResponse(response.ToString());
+
+			client.LastError = "";
+
             return context;
         }
 
