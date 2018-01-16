@@ -115,6 +115,9 @@
     <Reference Include="Grapevine">
       <HintPath>packages\Grapevine.4.1.0.0\lib\net40\Grapevine.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>packages\Newtonsoft.Json.10.0.3\lib\net40\Newtonsoft.Json.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ProjectInstaller.resx">
