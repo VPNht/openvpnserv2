@@ -324,7 +324,8 @@ namespace OpenVpn
 							client.LastError = "AUTHENTICATION_FAILED";
 						}
 
-						client.OpenVpnState = OpenVpnState.DISCONNECTED;
+						client.Disconnect();
+
 						break;
                 }
             }
