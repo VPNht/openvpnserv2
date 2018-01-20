@@ -164,6 +164,8 @@ namespace OpenVpn
 
         public void Disconnect()
         {
+            this.Commands.Clear();
+			
             if (this.Stream != null)
             {
                 this.Stream.Close();
