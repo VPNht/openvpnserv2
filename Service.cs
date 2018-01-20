@@ -139,7 +139,7 @@ namespace OpenVpn
                                 }
                                 catch (Exception e)
                                 {
-                                    EventLog.WriteEntry("Caught exception " + e.Message + " when starting openvpn for " + configFilename);
+                                    Console.WriteLine("Caught exception " + e.Message + " when starting openvpn for " + configFilename);
                                 }
                             }
 
@@ -148,7 +148,7 @@ namespace OpenVpn
                     }
             catch (Exception e)
             {
-                EventLog.WriteEntry("Exception occured during OpenVPN service start: " + e.Message + e.StackTrace);
+                Console.WriteLine("Exception occured during OpenVPN service start: " + e.Message + e.StackTrace);
                 throw e;
             }
         }
@@ -296,7 +296,7 @@ namespace OpenVpn
         {
             foreach (string message in messages)
             {
-                EventLog.WriteEntry(message);
+                Console.WriteLine(message);
             }
         }
 
@@ -304,7 +304,7 @@ namespace OpenVpn
         {
             var client = ManagementClient.Instance;
 
-            EventLog.WriteEntry("[OK] " + command + ":" + message);
+            Console.WriteLine("[OK] " + command + ":" + message);
 
             // pid=$PID\r\n
             if (command == "pid")
@@ -323,7 +323,7 @@ namespace OpenVpn
 
         private void Client_OnCommandFailed(string command, string message)
         {
-            EventLog.WriteEntry("[ERROR] " + command + ":" + message);
+            Console.WriteLine("[ERROR] " + command + ":" + message);
         }
     }
 
@@ -419,19 +419,19 @@ namespace OpenVpn
 					}
 					catch (IOException e)
 					{
-                      config.eventLog.WriteEntry("IOException creating exit event named '" + exitEvent + "' " + e.Message + e.StackTrace);
+                      Console.WriteLine("IOException creating exit event named '" + exitEvent + "' " + e.Message + e.StackTrace);
 					}
 					catch (UnauthorizedAccessException e)
 					{
-                      config.eventLog.WriteEntry("UnauthorizedAccessException creating exit event named '" + exitEvent + "' " + e.Message + e.StackTrace);
+                      Console.WriteLine("UnauthorizedAccessException creating exit event named '" + exitEvent + "' " + e.Message + e.StackTrace);
 					}
 					catch (WaitHandleCannotBeOpenedException e)
 					{
-                      config.eventLog.WriteEntry("WaitHandleCannotBeOpenedException creating exit event named '" + exitEvent + "' " + e.Message + e.StackTrace);
+                      Console.WriteLine("WaitHandleCannotBeOpenedException creating exit event named '" + exitEvent + "' " + e.Message + e.StackTrace);
 					}
 					catch (ArgumentException e)
 					{
-                      config.eventLog.WriteEntry("ArgumentException creating exit event named '" + exitEvent + "' " + e.Message + e.StackTrace);
+                      Console.WriteLine("ArgumentException creating exit event named '" + exitEvent + "' " + e.Message + e.StackTrace);
                    }
                 }
             }
@@ -500,7 +500,7 @@ namespace OpenVpn
         /// For use with unexpected terminations
         private void Watchdog(object sender, EventArgs e)
         {
-            config.eventLog.WriteEntry("Process for " + configFile + " exited. Restarting in 10 sec.");
+            Console.WriteLine("Process for " + configFile + " exited. Restarting in 10 sec.");
 
             restartTimer = new System.Timers.Timer(10000);
             restartTimer.AutoReset = false;
@@ -515,7 +515,7 @@ namespace OpenVpn
         /// For use with Restart() (e.g. after a resume)
         private void FastRestart(object sender, EventArgs e)
         {
-            config.eventLog.WriteEntry("Process for " + configFile + " restarting in 3 sec");
+            Console.WriteLine("Process for " + configFile + " restarting in 3 sec");
             restartTimer = new System.Timers.Timer(3000);
             restartTimer.AutoReset = false;
             restartTimer.Elapsed += (object source, System.Timers.ElapsedEventArgs ev) =>
