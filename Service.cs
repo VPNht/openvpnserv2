@@ -247,8 +247,6 @@ namespace OpenVpn
                 String[] parameters = message.Split(',');
                 String timestamp = parameters[0];
                 String state = parameters[1];
-                String localIP = parameters[3];
-                String remoteIP = parameters[4];
 
                 switch (state)
                 {
@@ -267,8 +265,8 @@ namespace OpenVpn
                         break;
 
                     case "CONNECTED":
-                        client.LocalIP = IPAddress.Parse(localIP);
-                        client.RemoteIP = IPAddress.Parse(remoteIP);
+                        client.LocalIP = IPAddress.Parse(parameters[3]);
+                        client.RemoteIP = IPAddress.Parse(parameters[4]);
                         client.OpenVpnState = OpenVpnState.CONNECTED;
                         client.ConnectionStartTime = DateTime.Now;
                         break;
@@ -276,6 +274,15 @@ namespace OpenVpn
                     case "RECONNECTING":
                         client.OpenVpnState = OpenVpnState.RECONNECTING;
                         break;
+
+					case "EXITING":
+						if (parameters[2] == "auth-failure")
+						{
+							client.LastError = "AUTHENTICATION_FAILED";
+						}
+
+						client.OpenVpnState = OpenVpnState.DISCONNECTED;
+						break;
                 }
             }
 			else if (source == "FATAL")
