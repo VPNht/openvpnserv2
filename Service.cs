@@ -97,7 +97,7 @@ namespace OpenVpn
                         var config = new OpenVpnServiceConfiguration()
                         {
                             exePath = (string)rkOvpn.GetValue("exe_path"),
-                            configDir = (string)rkOvpn.GetValue("config_dir"),
+                            configDir = (string)rkOvpn.GetValue("autostart_config_dir"),
                             configExt = "." + (string)rkOvpn.GetValue("config_ext"),
                             logDir = (string)rkOvpn.GetValue("log_dir"),
                             logAppend = append,
@@ -106,7 +106,7 @@ namespace OpenVpn
                             eventLog = EventLog,
                         };
 
-                        if (configDirsConsidered.Contains(config.configDir)) {
+                        if (String.IsNullOrEmpty(config.configDir) || configDirsConsidered.Contains(config.configDir)) {
                             continue;
                         }
                         configDirsConsidered.Add(config.configDir);

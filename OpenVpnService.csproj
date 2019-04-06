@@ -25,11 +25,11 @@
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>1.3.0.%2a</ApplicationVersion>
+    <ApplicationVersion>1.4.0.%2a</ApplicationVersion>
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <ReleaseVersion>1.3.0.0</ReleaseVersion>
+    <ReleaseVersion>1.4.0.0</ReleaseVersion>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject>OpenVpn.OpenVpnService</StartupObject>
